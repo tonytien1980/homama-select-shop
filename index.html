@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>何媽媽團購選物</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f97316', // 品牌橘色
+                        'primary-dark': '#ea580c',
+                        'primary-light': '#ffedd5',
+                        bulletin: '#fff7ed', // 公告底色 (淡黃)
+                        'bulletin-border': '#fed7aa', // 公告邊框
+                        'bulletin-text': '#9a3412', // 公告文字
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        html { scroll-behavior: smooth; }
+        input, textarea { font-size: 16px !important; }
+        
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f97316;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 pb-24 font-sans antialiased">
+
+    <div id="app">
+        
+        <!-- Loading 畫面 -->
+        <div v-if="isLoading" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center">
+            <div class="loader mb-4"></div>
+            <p class="text-gray-500 font-medium animate-pulse">正在讀取何媽媽的菜單...</p>
+        </div>
+
+        <div v-else>
+            <!-- 頂部導航列 -->
+            <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm transition-all duration-300">
+                <div class="flex items-center justify-between px-4 py-3 h-14">
+                    <div class="flex items-center">
+                        <button v-if="currentCategory" @click="goHome" class="flex items-center text-gray-600 hover:text-primary transition-colors p-1 -ml-1 active:bg-gray-100 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                            <span class="font-bold text-lg text-primary">{{ currentCategory }}</span>
+                        </button>
+                        <div v-else class="flex items-center space-x-2">
+                            <h1 class="text-xl font-bold text-gray-800 tracking-tight">何媽媽團購選物</h1>
+                        </div>
+                    </div>
+                    
+                    <div class="relative cursor-pointer p-1" @click="scrollToCartOrOpenModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-gray-600"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
+                        <span v-if="cartTotalCount > 0" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full border-2 border-white animate-fade-in shadow-sm">{{ cartTotalCount }}</span>
+                    </div>
+                </div>
+
+                <div v-if="currentCategory && subCategories.length > 0" class="flex overflow-x-auto whitespace-nowrap px-2 py-2 bg-gray-50/90 backdrop-blur border-b border-gray-200 no-scrollbar">
+                    <button v-for="sub in subCategories" :key="sub" @click="scrollToSubCategory(sub)" class="px-4 py-1.5 mx-1 rounded-full text-sm font-medium transition-all duration-200" :class="activeSubCategory === sub ? 'bg-primary text-white shadow-md transform scale-105' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'">{{ sub }}</button>
+                </div>
+            </header>
+
+            <!-- 主內容 -->
+            <main class="pt-16 px-4 max-w-2xl mx-auto min-h-[calc(100vh-80px)]">
+                <!-- 首頁 -->
+                <div v-if="!currentCategory" class="animate-fade-in pb-4">
+                    
+                    <!-- 品牌 Logo 區塊 -->
+                    <div class="flex flex-col items-center justify-center pt-6 pb-4">
+                        <div class="w-48 h-48 bg-white rounded-3xl shadow-md p-1.5 border border-orange-100 flex items-center justify-center overflow-hidden mb-4 relative group">
+                            <img 
+                                :src="displayLogo" 
+                                alt="Logo" 
+                                class="w-full h-full object-cover rounded-2xl"
+                                onerror="this.onerror=null; this.src='https://placehold.co/400x400/f97316/ffffff?text=何媽媽+選物&font=roboto';"
+                            >
+                            <div class="absolute inset-0 rounded-3xl ring-4 ring-orange-50/50 pointer-events-none"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6 text-center">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-1">{{ siteSettings.welcome_title || '歡迎光臨 👋' }}</h2>
+                        <p class="text-gray-500 text-sm">{{ siteSettings.welcome_desc || '挑選您喜愛的美味食材' }}</p>
+                    </div>
+
+                    <!-- 佈告欄區塊 -->
+                    <div v-if="siteSettings.bulletin_text" class="mb-8 mx-1 bg-bulletin border border-bulletin-border rounded-xl p-4 shadow-sm flex items-start animate-fade-in">
+                        <div class="text-orange-500 mr-3 mt-0.5 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                                <path fill-rule="evenodd" d="M13.28 1.48l-3 3 .086-.086a2 2 0 011.664-.664 12 12 0 002.58 2.06A2.25 2.25 0 0116.5 9.75v3.75a2.25 2.25 0 01-1.07 1.916l7.11 3.555a.75.75 0 001.07-.68V5.71a.75.75 0 00-1.07-.68l-9.26 4.63zm-1.4 3.19a.75.75 0 00-1.071-.68l-9.26 4.63a.75.75 0 00-.419.67V18.29a.75.75 0 001.07.68l7.11-3.555a2.25 2.25 0 001.07-1.916V9.75a2.25 2.25 0 00-1.25-2.09.75.75 0 00.086-.086l3-3zM3.75 6.75l9 4.5v3.75l-9 4.5V6.75z" clip-rule="evenodd" />
+                                <path d="M10.5 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75z" />
+                            </svg>
+                        </div>
+                        <div class="text-bulletin-text text-sm font-medium leading-relaxed tracking-wide" v-html="siteSettings.bulletin_text"></div>
+                    </div>
+
+                    <!-- 
+                        *** 大類別列表 (最終智慧版) *** 邏輯：
+                        1. 如果 Sheet 有設定圖片 -> 顯示全版圖片 + 黑遮罩 + 白字
+                        2. 如果 Sheet 沒設定 -> 顯示白卡片 + 對應的 Icon + 黑字
+                    -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div 
+                            v-for="cat in allCategories" 
+                            :key="cat"
+                            @click="selectCategory(cat)"
+                            class="rounded-2xl shadow-sm border border-gray-100 cursor-pointer active:scale-95 transition-all hover:shadow-md group relative overflow-hidden aspect-[4/3]"
+                            :class="categoryImages[cat] ? 'bg-gray-800 border-none' : 'bg-white flex flex-col items-center justify-center'"
+                        >
+                            <!-- 情況 A: 有圖片 (全版背景) -->
+                            <template v-if="categoryImages[cat]">
+                                <img 
+                                    :src="categoryImages[cat]" 
+                                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90"
+                                >
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                                <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+                                    <span class="block text-xl font-bold mb-1 shadow-black drop-shadow-md">{{ cat }}</span>
+                                    <span class="inline-block text-[10px] font-medium bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-white/90 border border-white/10">
+                                        {{ getCategoryCount(cat) }} 項商品
+                                    </span>
+                                </div>
+                            </template>
+
+                            <!-- 情況 B: 沒圖片 (顯示 Icon) -->
+                            <template v-else>
+                                <div class="w-16 h-16 rounded-full bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center mb-3 text-primary transition-colors">
+                                    <!-- 這裡根據類別名稱顯示不同 Icon -->
+                                    <svg v-if="cat==='湯品'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" /></svg>
+                                    <svg v-else-if="cat==='點心'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265zm-3 0a.375.375 0 11-.53 0L9 2.845l.265.265zm6 0a.375.375 0 11-.53 0L15 2.845l.265.265z" /></svg>
+                                    <svg v-else-if="cat==='菜餚'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.001A3.75 3.75 0 0012 18z" /></svg>
+                                    <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>
+                                </div>
+                                <span class="text-xl font-bold text-gray-800">{{ cat }}</span>
+                                <span class="text-xs text-gray-400 mt-1 bg-gray-100 px-2 py-0.5 rounded-full">{{ getCategoryCount(cat) }} 項商品</span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 頁面 2: 商品列表 -->
+                <div v-else class="animate-fade-in pt-12"> 
+                    <div v-for="subName in subCategories" :key="subName" :id="'sub-' + subName" class="mb-8 scroll-mt-36">
+                        <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center bg-gray-50/95 backdrop-blur sticky top-[6.5rem] z-10 py-2">
+                            <span class="w-1.5 h-6 bg-primary rounded-full mr-2 shadow-sm"></span>
+                            {{ subName }}
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div v-for="item in currentCategoryItems[subName]" :key="item.id" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-row sm:flex-col h-32 sm:h-auto group">
+                                <div class="relative w-32 sm:w-full sm:h-48 bg-gray-200 shrink-0">
+                                    <img :src="item.image || getPlaceholderImage(item.name)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                                    <div v-if="item.brand" class="absolute top-1 left-1 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded shadow-sm">{{ item.brand }}</div>
+                                </div>
+                                <div class="p-3 flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <h4 class="font-bold text-gray-900 text-base leading-tight mb-1 line-clamp-2">{{ item.name }}</h4>
+                                        <p class="text-xs text-gray-500 line-clamp-1">{{ item.spec }}</p>
+                                    </div>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <div class="text-primary font-bold text-lg">
+                                            <span v-if="item.price > 0">${{ item.price }}</span>
+                                            <span v-else class="text-sm text-red-500 font-medium bg-red-50 px-2 py-0.5 rounded">時價</span>
+                                        </div>
+                                        <div v-if="item.price > 0">
+                                            <div v-if="cart[item.id]" class="flex items-center bg-gray-100 rounded-lg h-8 shadow-inner">
+                                                <button @click="decreaseQty(item)" class="w-8 h-full flex items-center justify-center text-gray-600 hover:text-red-500 active:bg-gray-200 rounded-l-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg></button>
+                                                <span class="min-w-[1.5rem] text-center font-bold text-sm text-gray-800">{{ cart[item.id] }}</span>
+                                                <button @click="increaseQty(item)" class="w-8 h-full flex items-center justify-center text-primary hover:text-primary-dark active:bg-gray-200 rounded-r-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg></button>
+                                            </div>
+                                            <button v-else @click="increaseQty(item)" class="bg-primary hover:bg-primary-dark text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md shadow-orange-200 transition-all active:scale-95"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg></button>
+                                        </div>
+                                        <div v-else>
+                                            <button @click="inquirePrice(item.name)" class="text-xs text-primary border border-primary px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-colors">詢價</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-16"></div>
+                </div>
+            </main>
+
+            <!-- 浮動結帳列 -->
+            <transition name="slide-up">
+                <div v-if="cartTotalCount > 0" class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/95 backdrop-blur border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] safe-area-bottom">
+                    <div class="max-w-2xl mx-auto flex items-center justify-between">
+                        <div class="flex flex-col cursor-pointer" @click="isCheckoutModalOpen = true">
+                            <span class="text-xs text-gray-500 font-medium">購物車內有 <b class="text-gray-800">{{ cartTotalCount }}</b> 件商品</span>
+                            <span class="text-2xl font-bold text-gray-900 font-mono tracking-tight">Total: <span class="text-primary">${{ formatPrice(cartTotalPrice) }}</span></span>
+                        </div>
+                        <button @click="isCheckoutModalOpen = true" class="bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-gray-300 active:scale-95 transition-all flex items-center space-x-2">
+                            <span>去結帳</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </transition>
+
+            <!-- 結帳彈窗 -->
+            <div v-if="isCheckoutModalOpen" class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-300" @click="isCheckoutModalOpen = false"></div>
+                <div class="bg-white w-full max-w-md h-[90vh] sm:h-auto sm:max-h-[85vh] sm:rounded-2xl rounded-t-2xl shadow-2xl pointer-events-auto flex flex-col animate-slide-up sm:animate-fade-in relative">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50 sm:rounded-t-2xl">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">訂單確認</h2>
+                        <button @click="isCheckoutModalOpen = false" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-200 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-6 bg-white">
+                        <div class="mb-8">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 ml-1">購物清單</h3>
+                            <div class="bg-gray-50 rounded-xl p-4 space-y-4 border border-gray-100">
+                                <div v-for="item in cartDetails" :key="item.id" class="flex justify-between items-center text-sm">
+                                    <div class="flex-1 pr-2">
+                                        <div class="font-bold text-gray-800">{{ item.name }}</div>
+                                        <div class="text-gray-400 text-xs mt-0.5">{{ item.spec }}</div>
+                                    </div>
+                                    <div class="text-right flex flex-col items-end gap-1">
+                                        <div class="flex items-center bg-white rounded-lg border border-gray-200 h-7 shadow-sm">
+                                            <button @click="decreaseQty(item)" class="w-7 h-full flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-l-lg transition-colors active:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg></button>
+                                            <span class="min-w-[1.5rem] text-center font-mono font-bold text-sm text-gray-800 select-none">{{ item.qty }}</span>
+                                            <button @click="increaseQty(item)" class="w-7 h-full flex items-center justify-center text-primary hover:text-primary-dark hover:bg-orange-50 rounded-r-lg transition-colors active:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg></button>
+                                        </div>
+                                        <div class="font-medium text-gray-600">${{ item.subtotal }}</div>
+                                    </div>
+                                </div>
+                                <div class="border-t border-dashed border-gray-300 my-2"></div>
+                                <div class="flex justify-between items-center pt-1">
+                                    <span class="font-bold text-gray-600">總金額</span>
+                                    <span class="font-bold text-xl text-primary font-mono">${{ formatPrice(cartTotalPrice) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 ml-1">訂購人資訊</h3>
+                            <div><label class="block text-sm font-medium text-gray-700 mb-1">姓名 <span class="text-red-500">*</span></label><input v-model="customer.name" type="text" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder-gray-400"></div>
+                            <div><label class="block text-sm font-medium text-gray-700 mb-1">電話 <span class="text-red-500">*</span></label><input v-model="customer.phone" type="tel" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder-gray-400"></div>
+                            <div><label class="block text-sm font-medium text-gray-700 mb-1">取貨地址 / 備註</label><textarea v-model="customer.address" rows="3" class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder-gray-400"></textarea></div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl sm:rounded-b-2xl">
+                        <button @click="submitOrder" :disabled="!isFormValid || cartTotalCount === 0" class="w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center space-x-2" :class="(isFormValid && cartTotalCount > 0) ? 'bg-[#06c755] hover:bg-[#05b34c] active:scale-[0.98]' : 'bg-gray-300 cursor-not-allowed grayscale'">
+                            <svg v-if="isFormValid && cartTotalCount > 0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0c4.411 0 8 3.589 8 8s-3.589 8-8 8-8-3.589-8-8 3.589-8 8-8m0 1c-3.866 0-7 3.134-7 7 0 3.866 3.134 7 7 7 3.866 0 7-3.134 7-7 0-3.866-3.134-7-7-7m5.029 4.526a.47.47 0 0 0 .092-.271.43.43 0 0 0-.219-.367.96.96 0 0 0-.08-.051c-.079-.044-.224-.123-.429-.234-.411-.222-1.047-.557-1.921-1.004C9.563 3.1 8.358 2.502 8 2.5c-.358.002-1.562.6-2.472 1.099-.874.447-1.51.782-1.921 1.004-.205.111-.35.19-.429.234a.97.97 0 0 0-.08.051.43.43 0 0 0-.219.367.47.47 0 0 0 .092.271c.088.132.302.404.707 1.054.404.647 1.066 1.704 1.764 2.82l.006.01c.732 1.171 1.503 2.404 1.536 2.46a.58.58 0 0 0 .97 0c.033-.056.804-1.289 1.536-2.46l.006-.01c.698-1.116 1.36-2.173 1.764-2.82.405-.65.619-.922.707-1.054"/></svg>
+                            <span>{{ cartTotalCount > 0 ? '使用 LINE 傳送訂單' : '購物車是空的' }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, computed, reactive, onMounted } = Vue;
+
+        // ============================================
+        // 設定區
+        // ============================================
+        // 1. Google Apps Script 部署網址 (請填入)
+        const API_URL = "https://script.google.com/macros/s/AKfycbyUZeFd6JU2iHnHbhQavmOOCIH2zXQbltnDBlHqeSFhuN9XClaPNI6xoUhXAZ_GfLU6/exec"; 
+
+        createApp({
+            setup() {
+                // 狀態
+                const rawMenuData = ref([]); 
+                const siteSettings = ref({}); // 新增：存放從 Sheet 抓回來的設定 (Logo, Title, Bulletin)
+                const isLoading = ref(true); 
+                const cart = reactive({}); 
+                const isCheckoutModalOpen = ref(false);
+                const customer = reactive({ name: "", phone: "", address: "" });
+                const currentCategory = ref(null);
+                const activeSubCategory = ref("");
+
+                // 抓取 Google Sheet 資料
+                const fetchMenuData = async () => {
+                    if (!API_URL) {
+                        console.warn("尚未設定 API_URL");
+                        isLoading.value = false;
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(API_URL);
+                        const data = await res.json();
+                        
+                        // data 結構現在是 { menu: [], settings: {} }
+                        if (data.menu) rawMenuData.value = data.menu;
+                        if (data.settings) siteSettings.value = data.settings;
+                        
+                    } catch (error) {
+                        console.error("讀取失敗:", error);
+                        alert("連線失敗，請檢查網路或 API 設定。");
+                    } finally {
+                        isLoading.value = false;
+                    }
+                };
+
+                onMounted(() => {
+                    fetchMenuData();
+                });
+
+                // Computed: Logo Display Helper (Fixing the missing logo issue)
+                const displayLogo = computed(() => {
+                    if (siteSettings.value.brand_logo && siteSettings.value.brand_logo.trim() !== '') {
+                        return siteSettings.value.brand_logo;
+                    }
+                    // Fallback URL (simple and reliable)
+                    return 'https://placehold.co/400x400/f97316/ffffff?text=何媽媽+選物&font=roboto';
+                });
+
+                // Computed: 類別圖片動態處理 (從 Google Sheet settings 讀取 cat_img_ 開頭的設定)
+                const categoryImages = computed(() => {
+                    const imgs = {};
+                    if (siteSettings.value) {
+                        for (const [key, value] of Object.entries(siteSettings.value)) {
+                            if (key.startsWith('cat_img_')) {
+                                // 移除 'cat_img_' 前綴，取得類別名稱 (例如 "湯品")
+                                const catName = key.replace('cat_img_', '');
+                                imgs[catName] = value;
+                            }
+                        }
+                    }
+                    return imgs;
+                });
+
+                // Computed
+                const allCategories = computed(() => {
+                    const cats = new Set(rawMenuData.value.map(item => item.cat));
+                    return Array.from(cats); 
+                });
+
+                const currentCategoryItems = computed(() => {
+                    if (!currentCategory.value) return {};
+                    const items = rawMenuData.value.filter(item => item.cat === currentCategory.value);
+                    const grouped = {};
+                    items.forEach(item => {
+                        if (!grouped[item.sub]) grouped[item.sub] = [];
+                        grouped[item.sub].push(item);
+                    });
+                    return grouped;
+                });
+
+                const subCategories = computed(() => Object.keys(currentCategoryItems.value));
+
+                const cartTotalCount = computed(() => Object.values(cart).reduce((a, b) => a + b, 0));
+                const cartItems = computed(() => rawMenuData.value.filter(item => cart[item.id] > 0));
+                const cartDetails = computed(() => cartItems.value.map(item => ({...item, qty: cart[item.id], subtotal: item.price * cart[item.id]})));
+                const cartTotalPrice = computed(() => cartDetails.value.reduce((sum, item) => sum + item.subtotal, 0));
+                const isFormValid = computed(() => customer.name.trim() !== "" && customer.phone.trim() !== "");
+
+                // Methods
+                const selectCategory = (cat) => {
+                    currentCategory.value = cat;
+                    window.scrollTo({ top: 0, behavior: 'auto' }); 
+                    const firstSub = Object.keys(currentCategoryItems.value)[0];
+                    if (firstSub) activeSubCategory.value = firstSub;
+                };
+
+                const goHome = () => {
+                    currentCategory.value = null;
+                    activeSubCategory.value = "";
+                };
+
+                const getCategoryCount = (cat) => rawMenuData.value.filter(item => item.cat === cat).length;
+
+                const getPlaceholderImage = (text) => `https://placehold.co/400x300/fed7aa/c2410c?text=${encodeURIComponent(text)}&font=roboto`;
+
+                const scrollToSubCategory = (subName) => {
+                    activeSubCategory.value = subName;
+                    const el = document.getElementById('sub-' + subName);
+                    if (el) {
+                        const headerOffset = 140; 
+                        const elementPosition = el.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                    }
+                };
+
+                const scrollToCartOrOpenModal = () => {
+                    if (cartTotalCount.value > 0) isCheckoutModalOpen.value = true;
+                    else alert("購物車是空的喔！快去選購吧 😋");
+                };
+
+                const increaseQty = (item) => {
+                    if (!cart[item.id]) cart[item.id] = 0;
+                    cart[item.id]++;
+                };
+                const decreaseQty = (item) => {
+                    if (cart[item.id] > 0) {
+                        cart[item.id]--;
+                        if (cart[item.id] === 0) delete cart[item.id];
+                    }
+                };
+                const inquirePrice = (name) => alert(`請直接聯絡我們詢問「${name}」的最新價格！`);
+                const formatPrice = (price) => price.toLocaleString();
+
+                const submitOrder = () => {
+                    if (!isFormValid.value) return;
+                    const date = new Date().toLocaleDateString();
+                    let itemsText = cartDetails.value.map((item, index) => `${index + 1}. ${item.name} [${item.spec}] x ${item.qty} = $${item.subtotal}`).join('\n');
+                    const message = `【團購訂單 ${date}】\n-------------------\n訂購人：${customer.name}\n電話：${customer.phone}\n取貨/備註：${customer.address || '無'}\n-------------------\n訂購明細：\n${itemsText}\n-------------------\n總金額：$${formatPrice(cartTotalPrice.value)}`;
+                    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(message)}`, '_blank');
+                };
+
+                return {
+                    API_URL,
+                    categoryImages,
+                    rawMenuData,
+                    siteSettings, // 匯出設定
+                    isLoading,
+                    cart,
+                    cartTotalCount,
+                    cartTotalPrice,
+                    cartDetails,
+                    customer,
+                    isCheckoutModalOpen,
+                    isFormValid,
+                    currentCategory,
+                    allCategories,
+                    currentCategoryItems,
+                    subCategories,
+                    activeSubCategory,
+                    selectCategory,
+                    goHome,
+                    getCategoryCount,
+                    getPlaceholderImage,
+                    increaseQty,
+                    decreaseQty,
+                    formatPrice,
+                    inquirePrice,
+                    scrollToSubCategory,
+                    scrollToCartOrOpenModal,
+                    submitOrder,
+                    displayLogo // 匯出 Logo 計算屬性
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
