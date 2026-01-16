@@ -3,8 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- 
+        =============================================
+        【社群分享設定區】(LINE/FB 分享時顯示的內容)
+        請修改以下 content="..." 裡面的文字
+        =============================================
+    -->
+    
+    <!-- 1. 網頁標題 (瀏覽器分頁名稱) -->
     <title>何媽媽團購選物</title>
     
+    <!-- 2. 網頁描述 (搜尋引擎看的) -->
+    <meta name="description" content="嚴選在地食材，新鮮直送，每週開團！">
+    
+    <!-- Open Graph 設定 (給 LINE 和 Facebook 看的) -->
+    <meta property="og:type" content="website">
+    
+    <!-- ★★★ 修改點 A：請填入您 GitHub Pages 的完整網址 -->
+    <!-- 例如：https://yourname.github.io/mom-shop/ -->
+    <meta property="og:url" content="https://tonytien1980.github.io/homama-select-shop/">
+    
+    <!-- ★★★ 修改點 B：分享時的大標題 -->
+    <meta property="og:title" content="何媽媽團購選物 - 餐桌美味花樣送">
+    
+    <!-- ★★★ 修改點 C：分享時的小標題/說明 -->
+    <meta property="og:description" content="趕快來看看有哪些好吃的！">
+    
+    <!-- ★★★ 修改點 D：分享時的縮圖 (請填入圖片網址) -->
+    <!-- 建議使用您上傳到 GitHub Issues 的那張 Logo 圖網址 -->
+    <meta property="og:image" content="https://i.ibb.co/9mSm5Ppv/brandlogo.jpg">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,12 +41,12 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#f97316', // 品牌橘色
+                        primary: '#f97316', 
                         'primary-dark': '#ea580c',
                         'primary-light': '#ffedd5',
-                        bulletin: '#fff7ed', // 公告底色 (淡黃)
-                        'bulletin-border': '#fed7aa', // 公告邊框
-                        'bulletin-text': '#9a3412', // 公告文字
+                        bulletin: '#fff7ed', 
+                        'bulletin-border': '#fed7aa', 
+                        'bulletin-text': '#9a3412',
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
@@ -47,7 +76,6 @@
         html { scroll-behavior: smooth; }
         input, textarea { font-size: 16px !important; }
         
-        /* Loading Spinner */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #f97316;
@@ -65,15 +93,14 @@
 <body class="bg-gray-50 text-gray-800 pb-24 font-sans antialiased">
 
     <div id="app">
-        
-        <!-- Loading 畫面 -->
+        <!-- Loading -->
         <div v-if="isLoading" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center">
             <div class="loader mb-4"></div>
             <p class="text-gray-500 font-medium animate-pulse">正在讀取何媽媽的菜單...</p>
         </div>
 
         <div v-else>
-            <!-- 頂部導航列 -->
+            <!-- Header -->
             <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm transition-all duration-300">
                 <div class="flex items-center justify-between px-4 py-3 h-14">
                     <div class="flex items-center">
@@ -97,12 +124,12 @@
                 </div>
             </header>
 
-            <!-- 主內容 -->
+            <!-- Main -->
             <main class="pt-16 px-4 max-w-2xl mx-auto min-h-[calc(100vh-80px)]">
                 <!-- 首頁 -->
                 <div v-if="!currentCategory" class="animate-fade-in pb-4">
                     
-                    <!-- 品牌 Logo 區塊 -->
+                    <!-- Logo -->
                     <div class="flex flex-col items-center justify-center pt-6 pb-4">
                         <div class="w-48 h-48 bg-white rounded-3xl shadow-md p-1.5 border border-orange-100 flex items-center justify-center overflow-hidden mb-4 relative group">
                             <img 
@@ -120,7 +147,7 @@
                         <p class="text-gray-500 text-sm">{{ siteSettings.welcome_desc || '挑選您喜愛的美味食材' }}</p>
                     </div>
 
-                    <!-- 佈告欄區塊 -->
+                    <!-- Bulletin -->
                     <div v-if="siteSettings.bulletin_text" class="mb-8 mx-1 bg-bulletin border border-bulletin-border rounded-xl p-4 shadow-sm flex items-start animate-fade-in">
                         <div class="text-orange-500 mr-3 mt-0.5 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -131,11 +158,7 @@
                         <div class="text-bulletin-text text-sm font-medium leading-relaxed tracking-wide" v-html="siteSettings.bulletin_text"></div>
                     </div>
 
-                    <!-- 
-                        *** 大類別列表 (最終智慧版) *** 邏輯：
-                        1. 如果 Sheet 有設定圖片 -> 顯示全版圖片 + 黑遮罩 + 白字
-                        2. 如果 Sheet 沒設定 -> 顯示白卡片 + 對應的 Icon + 黑字
-                    -->
+                    <!-- Categories -->
                     <div class="grid grid-cols-2 gap-4">
                         <div 
                             v-for="cat in allCategories" 
@@ -144,25 +167,16 @@
                             class="rounded-2xl shadow-sm border border-gray-100 cursor-pointer active:scale-95 transition-all hover:shadow-md group relative overflow-hidden aspect-[4/3]"
                             :class="categoryImages[cat] ? 'bg-gray-800 border-none' : 'bg-white flex flex-col items-center justify-center'"
                         >
-                            <!-- 情況 A: 有圖片 (全版背景) -->
                             <template v-if="categoryImages[cat]">
-                                <img 
-                                    :src="categoryImages[cat]" 
-                                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90"
-                                >
+                                <img :src="categoryImages[cat]" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                                 <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
                                     <span class="block text-xl font-bold mb-1 shadow-black drop-shadow-md">{{ cat }}</span>
-                                    <span class="inline-block text-[10px] font-medium bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-white/90 border border-white/10">
-                                        {{ getCategoryCount(cat) }} 項商品
-                                    </span>
+                                    <span class="inline-block text-[10px] font-medium bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-white/90 border border-white/10">{{ getCategoryCount(cat) }} 項商品</span>
                                 </div>
                             </template>
-
-                            <!-- 情況 B: 沒圖片 (顯示 Icon) -->
                             <template v-else>
                                 <div class="w-16 h-16 rounded-full bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center mb-3 text-primary transition-colors">
-                                    <!-- 這裡根據類別名稱顯示不同 Icon -->
                                     <svg v-if="cat==='湯品'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" /></svg>
                                     <svg v-else-if="cat==='點心'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265zm-3 0a.375.375 0 11-.53 0L9 2.845l.265.265zm6 0a.375.375 0 11-.53 0L15 2.845l.265.265z" /></svg>
                                     <svg v-else-if="cat==='菜餚'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.001A3.75 3.75 0 0012 18z" /></svg>
@@ -175,7 +189,7 @@
                     </div>
                 </div>
 
-                <!-- 頁面 2: 商品列表 -->
+                <!-- Products -->
                 <div v-else class="animate-fade-in pt-12"> 
                     <div v-for="subName in subCategories" :key="subName" :id="'sub-' + subName" class="mb-8 scroll-mt-36">
                         <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center bg-gray-50/95 backdrop-blur sticky top-[6.5rem] z-10 py-2">
@@ -218,7 +232,7 @@
                 </div>
             </main>
 
-            <!-- 浮動結帳列 -->
+            <!-- Float Cart -->
             <transition name="slide-up">
                 <div v-if="cartTotalCount > 0" class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/95 backdrop-blur border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] safe-area-bottom">
                     <div class="max-w-2xl mx-auto flex items-center justify-between">
@@ -234,7 +248,7 @@
                 </div>
             </transition>
 
-            <!-- 結帳彈窗 -->
+            <!-- Checkout Modal -->
             <div v-if="isCheckoutModalOpen" class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-300" @click="isCheckoutModalOpen = false"></div>
                 <div class="bg-white w-full max-w-md h-[90vh] sm:h-auto sm:max-h-[85vh] sm:rounded-2xl rounded-t-2xl shadow-2xl pointer-events-auto flex flex-col animate-slide-up sm:animate-fade-in relative">
@@ -309,7 +323,7 @@
 
                 // 抓取 Google Sheet 資料
                 const fetchMenuData = async () => {
-                    if (!API_URL) {
+                    if (!API_URL || API_URL.includes("請填入")) {
                         console.warn("尚未設定 API_URL");
                         isLoading.value = false;
                         return;
