@@ -5,33 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <!-- 
-        =============================================
-        【社群分享設定區】(LINE/FB 分享時顯示的內容)
-        請修改以下 content="..." 裡面的文字
-        =============================================
+        =======================================================================
+        ★ 設定區 1：社群分享設定 (Open Graph)
+        這裡的設定決定了當您把網址貼到 LINE 或 Facebook 時，別人看到的預覽圖卡長什麼樣子。
+        因為 LINE 爬蟲看不懂 JavaScript，所以這些資訊必須直接寫在這裡，不能從 Google Sheet 抓。
+        =======================================================================
     -->
-    
-    <!-- 1. 網頁標題 (瀏覽器分頁名稱) -->
     <title>何媽媽團購選物</title>
+    <meta name="description" content="嚴選食材，美味直送！">
     
-    <!-- 2. 網頁描述 (搜尋引擎看的) -->
-    <meta name="description" content="嚴選在地食材，美味直送！">
-    
-    <!-- Open Graph 設定 (給 LINE 和 Facebook 看的) -->
     <meta property="og:type" content="website">
     
-    <!-- ★★★ 修改點 A：請填入您 GitHub Pages 的完整網址 -->
-    <!-- 例如：https://yourname.github.io/mom-shop/ -->
+    <!-- ★★★ 請修改下方 content="..." 裡面的網址 ★★★ -->
+    <!-- 請填入您 GitHub Pages 的「完整網址」，例如：https://yourname.github.io/mom-shop/ -->
     <meta property="og:url" content="https://tonytien1980.github.io/homama-select-shop/">
     
-    <!-- ★★★ 修改點 B：分享時的大標題 -->
+    <!-- ★★★ 請修改下方 content="..." 裡面的標題 ★★★ -->
+    <!-- 分享時顯示的大標題 -->
     <meta property="og:title" content="何媽媽團購選物 - 餐桌美味花樣送">
     
-    <!-- ★★★ 修改點 C：分享時的小標題/說明 -->
+    <!-- ★★★ 請修改下方 content="..." 裡面的描述 ★★★ -->
+    <!-- 分享時顯示的小字說明 -->
     <meta property="og:description" content="趕快來看看有哪些好吃的！">
     
-    <!-- ★★★ 修改點 D：分享時的縮圖 (請填入圖片網址) -->
-    <!-- 建議使用您上傳到 GitHub Issues 的那張 Logo 圖網址 -->
+    <!-- ★★★ 請修改下方 content="..." 裡面的圖片網址 ★★★ -->
+    <!-- 分享時顯示的縮圖 (建議尺寸 1200x630)，請填入圖片直連網址 -->
     <meta property="og:image" content="https://i.ibb.co/nsp0pX5B/oglogo.webp">
 
     <!-- Tailwind CSS -->
@@ -53,14 +51,8 @@
                         'slide-up': 'slideUp 0.3s ease-out',
                     },
                     keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(100%)' },
-                            '100%': { transform: 'translateY(0)' },
-                        }
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } }
                     }
                 }
             }
@@ -75,19 +67,8 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         html { scroll-behavior: smooth; }
         input, textarea { font-size: 16px !important; }
-        
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #f97316;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #f97316; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 pb-24 font-sans antialiased">
@@ -102,32 +83,59 @@
         <div v-else>
             <!-- Header -->
             <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm transition-all duration-300">
-                <div class="flex items-center justify-between px-4 py-3 h-14">
-                    <div class="flex items-center">
-                        <button v-if="currentCategory" @click="goHome" class="flex items-center text-gray-600 hover:text-primary transition-colors p-1 -ml-1 active:bg-gray-100 rounded-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5 mr-1"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
-                            <span class="font-bold text-lg text-primary">{{ currentCategory }}</span>
-                        </button>
-                        <div v-else class="flex items-center space-x-2">
-                            <h1 class="text-xl font-bold text-gray-800 tracking-tight">何媽媽團購選物</h1>
+                <div class="flex items-center justify-between px-3 py-2 h-14 gap-2">
+                    
+                    <!-- 1. 左側按鈕：回首頁/清除搜尋 -->
+                    <button @click="goHome" class="flex-shrink-0 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary active:bg-gray-100 rounded-full transition-colors">
+                        <!-- 如果在首頁，顯示房子；如果在內頁或搜尋中，顯示箭頭 -->
+                        <svg v-if="!currentCategory && !searchQuery" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                        </svg>
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-primary">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                    </button>
+                    
+                    <!-- 2. 中間：搜尋框 (自動填滿空間) -->
+                    <div class="flex-1 relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-focus-within:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </div>
+                        <input 
+                            v-model="searchQuery" 
+                            type="text" 
+                            class="w-full pl-9 pr-4 py-2 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-primary/50 focus:bg-white text-sm outline-none transition-all placeholder-gray-400"
+                            placeholder="搜尋商品..."
+                        >
+                        <!-- 清除搜尋按鈕 X (有字時才出現) -->
+                        <button v-if="searchQuery" @click="searchQuery = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
                     
-                    <div class="relative cursor-pointer p-1" @click="scrollToCartOrOpenModal">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-gray-600"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
+                    <!-- 3. 右側：購物車按鈕 -->
+                    <div class="relative cursor-pointer flex-shrink-0 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary active:bg-gray-100 rounded-full transition-colors" @click="scrollToCartOrOpenModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                        </svg>
                         <span v-if="cartTotalCount > 0" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full border-2 border-white animate-fade-in shadow-sm">{{ cartTotalCount }}</span>
                     </div>
                 </div>
 
-                <div v-if="currentCategory && subCategories.length > 0" class="flex overflow-x-auto whitespace-nowrap px-2 py-2 bg-gray-50/90 backdrop-blur border-b border-gray-200 no-scrollbar">
+                <!-- 子分類 Tabs (只有在非搜尋模式且有選分類時顯示) -->
+                <div v-if="currentCategory && !searchQuery && subCategories.length > 0" class="flex overflow-x-auto whitespace-nowrap px-2 py-2 bg-gray-50/90 backdrop-blur border-b border-gray-200 no-scrollbar">
                     <button v-for="sub in subCategories" :key="sub" @click="scrollToSubCategory(sub)" class="px-4 py-1.5 mx-1 rounded-full text-sm font-medium transition-all duration-200" :class="activeSubCategory === sub ? 'bg-primary text-white shadow-md transform scale-105' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'">{{ sub }}</button>
                 </div>
             </header>
 
-            <!-- Main -->
             <main class="pt-16 px-4 max-w-2xl mx-auto min-h-[calc(100vh-80px)]">
-                <!-- 首頁 -->
-                <div v-if="!currentCategory" class="animate-fade-in pb-4">
+                
+                <!-- 頁面 1: 首頁 (無分類且無搜尋時顯示) -->
+                <div v-if="!currentCategory && !searchQuery" class="animate-fade-in pb-4">
                     
                     <!-- Logo -->
                     <div class="flex flex-col items-center justify-center pt-6 pb-4">
@@ -147,7 +155,7 @@
                         <p class="text-gray-500 text-sm">{{ siteSettings.welcome_desc || '挑選您喜愛的美味食材' }}</p>
                     </div>
 
-                    <!-- Bulletin -->
+                    <!-- Bulletin (搜尋框移到 Header 後，這裡只剩公告) -->
                     <div v-if="siteSettings.bulletin_text" class="mb-8 mx-1 bg-bulletin border border-bulletin-border rounded-xl p-4 shadow-sm flex items-start animate-fade-in">
                         <div class="text-orange-500 mr-3 mt-0.5 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -189,7 +197,53 @@
                     </div>
                 </div>
 
-                <!-- Products -->
+                <!-- ★★★ 搜尋結果頁面 ★★★ -->
+                <div v-else-if="searchQuery" class="animate-fade-in pt-4">
+                    <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        "{{ searchQuery }}" 的搜尋結果
+                    </h3>
+                    
+                    <div v-if="searchResults.length === 0" class="flex flex-col items-center justify-center py-12 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <p>找不到相關商品，換個關鍵字試試？</p>
+                    </div>
+
+                    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div v-for="item in searchResults" :key="item.id" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-row sm:flex-col h-32 sm:h-auto group">
+                            <div class="relative w-32 sm:w-full sm:h-48 bg-gray-200 shrink-0">
+                                <img :src="item.image || getPlaceholderImage(item.name)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                                <div v-if="item.brand" class="absolute top-1 left-1 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded shadow-sm">{{ item.brand }}</div>
+                            </div>
+                            <div class="p-3 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h4 class="font-bold text-gray-900 text-base leading-tight mb-1 line-clamp-2">{{ item.name }}</h4>
+                                    <p class="text-xs text-gray-500 line-clamp-1">{{ item.spec }}</p>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <div class="text-primary font-bold text-lg">
+                                        <span v-if="item.price > 0">${{ item.price }}</span>
+                                        <span v-else class="text-sm text-red-500 font-medium bg-red-50 px-2 py-0.5 rounded">時價</span>
+                                    </div>
+                                    <div v-if="item.price > 0">
+                                        <div v-if="cart[item.id]" class="flex items-center bg-gray-100 rounded-lg h-8 shadow-inner">
+                                            <button @click="decreaseQty(item)" class="w-8 h-full flex items-center justify-center text-gray-600 hover:text-red-500 active:bg-gray-200 rounded-l-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg></button>
+                                            <span class="min-w-[1.5rem] text-center font-bold text-sm text-gray-800">{{ cart[item.id] }}</span>
+                                            <button @click="increaseQty(item)" class="w-8 h-full flex items-center justify-center text-primary hover:text-primary-dark active:bg-gray-200 rounded-r-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg></button>
+                                        </div>
+                                        <button v-else @click="increaseQty(item)" class="bg-primary hover:bg-primary-dark text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md shadow-orange-200 transition-all active:scale-95"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg></button>
+                                    </div>
+                                    <div v-else>
+                                        <button @click="inquirePrice(item.name)" class="text-xs text-primary border border-primary px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-colors">詢價</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-16"></div>
+                </div>
+
+                <!-- 頁面 2: 商品列表 -->
                 <div v-else class="animate-fade-in pt-12"> 
                     <div v-for="subName in subCategories" :key="subName" :id="'sub-' + subName" class="mb-8 scroll-mt-36">
                         <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center bg-gray-50/95 backdrop-blur sticky top-[6.5rem] z-10 py-2">
@@ -304,7 +358,7 @@
         const { createApp, ref, computed, reactive, onMounted } = Vue;
 
         // ============================================
-        // 設定區
+        // ★★★ 設定區 ★★★
         // ============================================
         // 1. Google Apps Script 部署網址 (請填入)
         const API_URL = "https://script.google.com/macros/s/AKfycbyUZeFd6JU2iHnHbhQavmOOCIH2zXQbltnDBlHqeSFhuN9XClaPNI6xoUhXAZ_GfLU6/exec"; 
@@ -313,13 +367,14 @@
             setup() {
                 // 狀態
                 const rawMenuData = ref([]); 
-                const siteSettings = ref({}); // 新增：存放從 Sheet 抓回來的設定 (Logo, Title, Bulletin)
+                const siteSettings = ref({}); 
                 const isLoading = ref(true); 
                 const cart = reactive({}); 
                 const isCheckoutModalOpen = ref(false);
                 const customer = reactive({ name: "", phone: "", address: "" });
                 const currentCategory = ref(null);
                 const activeSubCategory = ref("");
+                const searchQuery = ref(""); 
 
                 // 抓取 Google Sheet 資料
                 const fetchMenuData = async () => {
@@ -333,7 +388,6 @@
                         const res = await fetch(API_URL);
                         const data = await res.json();
                         
-                        // data 結構現在是 { menu: [], settings: {} }
                         if (data.menu) rawMenuData.value = data.menu;
                         if (data.settings) siteSettings.value = data.settings;
                         
@@ -349,22 +403,19 @@
                     fetchMenuData();
                 });
 
-                // Computed: Logo Display Helper (Fixing the missing logo issue)
+                // Computed
                 const displayLogo = computed(() => {
                     if (siteSettings.value.brand_logo && siteSettings.value.brand_logo.trim() !== '') {
                         return siteSettings.value.brand_logo;
                     }
-                    // Fallback URL (simple and reliable)
                     return 'https://placehold.co/400x400/f97316/ffffff?text=何媽媽+選物&font=roboto';
                 });
 
-                // Computed: 類別圖片動態處理 (從 Google Sheet settings 讀取 cat_img_ 開頭的設定)
                 const categoryImages = computed(() => {
                     const imgs = {};
                     if (siteSettings.value) {
                         for (const [key, value] of Object.entries(siteSettings.value)) {
                             if (key.startsWith('cat_img_')) {
-                                // 移除 'cat_img_' 前綴，取得類別名稱 (例如 "湯品")
                                 const catName = key.replace('cat_img_', '');
                                 imgs[catName] = value;
                             }
@@ -373,7 +424,6 @@
                     return imgs;
                 });
 
-                // Computed
                 const allCategories = computed(() => {
                     const cats = new Set(rawMenuData.value.map(item => item.cat));
                     return Array.from(cats); 
@@ -392,6 +442,25 @@
 
                 const subCategories = computed(() => Object.keys(currentCategoryItems.value));
 
+                // ★★★ 關鍵更新：搜尋邏輯 (同時搜 Name, Tag1, Tag2, Tag3) ★★★
+                const searchResults = computed(() => {
+                    if (!searchQuery.value) return [];
+                    const q = searchQuery.value.toLowerCase().trim();
+                    
+                    return rawMenuData.value.filter(item => {
+                        // 1. 比對商品名稱
+                        if (item.name && item.name.toLowerCase().includes(q)) return true;
+                        
+                        // 2. 比對三個標籤 (tag1, tag2, tag3)
+                        // 只要其中任何一個標籤包含搜尋字，就回傳 true
+                        if (item.tag1 && item.tag1.toString().toLowerCase().includes(q)) return true;
+                        if (item.tag2 && item.tag2.toString().toLowerCase().includes(q)) return true;
+                        if (item.tag3 && item.tag3.toString().toLowerCase().includes(q)) return true;
+                        
+                        return false;
+                    });
+                });
+
                 const cartTotalCount = computed(() => Object.values(cart).reduce((a, b) => a + b, 0));
                 const cartItems = computed(() => rawMenuData.value.filter(item => cart[item.id] > 0));
                 const cartDetails = computed(() => cartItems.value.map(item => ({...item, qty: cart[item.id], subtotal: item.price * cart[item.id]})));
@@ -401,6 +470,7 @@
                 // Methods
                 const selectCategory = (cat) => {
                     currentCategory.value = cat;
+                    searchQuery.value = ""; 
                     window.scrollTo({ top: 0, behavior: 'auto' }); 
                     const firstSub = Object.keys(currentCategoryItems.value)[0];
                     if (firstSub) activeSubCategory.value = firstSub;
@@ -409,6 +479,7 @@
                 const goHome = () => {
                     currentCategory.value = null;
                     activeSubCategory.value = "";
+                    searchQuery.value = ""; 
                 };
 
                 const getCategoryCount = (cat) => rawMenuData.value.filter(item => item.cat === cat).length;
@@ -481,7 +552,9 @@
                     scrollToSubCategory,
                     scrollToCartOrOpenModal,
                     submitOrder,
-                    displayLogo // 匯出 Logo 計算屬性
+                    displayLogo,
+                    searchQuery, // 匯出搜尋相關
+                    searchResults
                 };
             }
         }).mount('#app');
