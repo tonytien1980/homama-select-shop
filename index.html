@@ -6,88 +6,111 @@
     
     <!-- 
         =======================================================================
-        ★ 設定區 1：社群分享設定 (Open Graph)
-        這裡的設定決定了當您把網址貼到 LINE 或 Facebook 時，別人看到的預覽圖卡長什麼樣子。
-        因為 LINE 爬蟲看不懂 JavaScript，所以這些資訊必須直接寫在這裡，不能從 Google Sheet 抓。
+        ★ 設定區 1：網頁標題與社群分享 (SEO & Social Sharing)
+        說明：這裡的設定決定了網址貼到 LINE 或 Facebook 時顯示的樣子。
+        注意：因為 LINE 爬蟲看不懂 JavaScript，這些資訊必須寫死在這裡。
         =======================================================================
     -->
-    <title>何媽媽團購選物</title>
-    <meta name="description" content="嚴選食材，美味直送！">
     
+    <!-- 1. 瀏覽器標籤頁顯示的名稱 -->
+    <title>何媽媽團購選物</title>
+    
+    <!-- 2. 給搜尋引擎看的簡短描述 -->
+    <meta name="description" content="嚴選在地食材，餐桌美味直送！">
+    
+    <!-- 3. Open Graph 設定 (給 LINE/FB 看的名片) -->
     <meta property="og:type" content="website">
     
-    <!-- ★★★ 請修改下方 content="..." 裡面的網址 ★★★ -->
-    <!-- 請填入您 GitHub Pages 的「完整網址」，例如：https://yourname.github.io/mom-shop/ -->
+    <!-- ★★★ 請修改：填入您 GitHub Pages 的完整網址 (例如 https://user.github.io/shop/) -->
     <meta property="og:url" content="https://tonytien1980.github.io/homama-select-shop/">
     
-    <!-- ★★★ 請修改下方 content="..." 裡面的標題 ★★★ -->
-    <!-- 分享時顯示的大標題 -->
+    <!-- ★★★ 請修改：分享時顯示的大標題 -->
     <meta property="og:title" content="何媽媽團購選物 - 餐桌美味花樣送">
     
-    <!-- ★★★ 請修改下方 content="..." 裡面的描述 ★★★ -->
-    <!-- 分享時顯示的小字說明 -->
+    <!-- ★★★ 請修改：分享時的小標題描述 -->
     <meta property="og:description" content="趕快來看看有哪些好吃的！">
     
-    <!-- ★★★ 請修改下方 content="..." 裡面的圖片網址 ★★★ -->
-    <!-- 分享時顯示的縮圖 (建議尺寸 1200x630)，請填入圖片直連網址 -->
+    <!-- ★★★ 請修改：分享時的縮圖 (建議尺寸 1200x630，必須是圖片直連網址) -->
     <meta property="og:image" content="https://i.ibb.co/nsp0pX5B/oglogo.webp">
 
-    <!-- Tailwind CSS -->
+    <!-- 
+        =======================================================================
+        ★ 樣式庫載入 (Tailwind CSS)
+        說明：負責網頁的美觀與排版，請勿更動。
+        =======================================================================
+    -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#f97316', 
+                        primary: '#f97316', // 主色調 (橘色)
                         'primary-dark': '#ea580c',
                         'primary-light': '#ffedd5',
-                        bulletin: '#fff7ed', 
-                        'bulletin-border': '#fed7aa', 
-                        'bulletin-text': '#9a3412',
+                        bulletin: '#fff7ed', // 公告底色
+                        'bulletin-border': '#fed7aa', // 公告邊框
+                        'bulletin-text': '#9a3412', // 公告文字
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
                         'slide-up': 'slideUp 0.3s ease-out',
+                        'zoom-in': 'zoomIn 0.2s ease-out',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } }
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
+                        zoomIn: { '0%': { transform: 'scale(0.95)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
                     }
                 }
             }
         }
     </script>
 
-    <!-- Vue 3 -->
+    <!-- Vue 3 核心框架 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
+    <!-- 自定義 CSS -->
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         html { scroll-behavior: smooth; }
+        /* 防止 iOS 輸入框縮放 */
         input, textarea { font-size: 16px !important; }
+        /* 載入動畫 */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #f97316; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* 燈箱背景遮罩 */
+        .lightbox-backdrop { background-color: rgba(0, 0, 0, 0.9); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 pb-24 font-sans antialiased">
 
     <div id="app">
-        <!-- Loading -->
+        
+        <!-- 
+            =============================================
+            Loading 畫面 (讀取中顯示)
+            =============================================
+        -->
         <div v-if="isLoading" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center">
             <div class="loader mb-4"></div>
-            <p class="text-gray-500 font-medium animate-pulse">正在讀取何媽媽的菜單...</p>
+            <p class="text-gray-500 font-medium animate-pulse">正在讀取資料庫...</p>
         </div>
 
         <div v-else>
-            <!-- Header -->
+            <!-- 
+                =============================================
+                Sticky Header (固定在頂部的導航列)
+                包含：Logo/返回鍵、搜尋框、購物車
+                =============================================
+            -->
             <header class="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm transition-all duration-300">
                 <div class="flex items-center justify-between px-3 py-2 h-14 gap-2">
                     
-                    <!-- 1. 左側按鈕：回首頁/清除搜尋 -->
+                    <!-- 左側按鈕 -->
                     <button @click="goHome" class="flex-shrink-0 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary active:bg-gray-100 rounded-full transition-colors">
-                        <!-- 如果在首頁，顯示房子；如果在內頁或搜尋中，顯示箭頭 -->
+                        <!-- 在首頁顯示房子 Icon，在內頁顯示返回箭頭 -->
                         <svg v-if="!currentCategory && !searchQuery" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                         </svg>
@@ -96,7 +119,7 @@
                         </svg>
                     </button>
                     
-                    <!-- 2. 中間：搜尋框 (自動填滿空間) -->
+                    <!-- 中間搜尋框 -->
                     <div class="flex-1 relative group">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-focus-within:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +132,7 @@
                             class="w-full pl-9 pr-4 py-2 rounded-full bg-gray-100 border-none focus:ring-2 focus:ring-primary/50 focus:bg-white text-sm outline-none transition-all placeholder-gray-400"
                             placeholder="搜尋商品..."
                         >
-                        <!-- 清除搜尋按鈕 X (有字時才出現) -->
+                        <!-- 清除搜尋按鈕 X -->
                         <button v-if="searchQuery" @click="searchQuery = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
@@ -117,7 +140,7 @@
                         </button>
                     </div>
                     
-                    <!-- 3. 右側：購物車按鈕 -->
+                    <!-- 右側購物車 -->
                     <div class="relative cursor-pointer flex-shrink-0 w-10 h-10 flex items-center justify-center text-gray-600 hover:text-primary active:bg-gray-100 rounded-full transition-colors" @click="scrollToCartOrOpenModal">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
@@ -126,18 +149,23 @@
                     </div>
                 </div>
 
-                <!-- 子分類 Tabs (只有在非搜尋模式且有選分類時顯示) -->
+                <!-- 小類別 Tabs -->
                 <div v-if="currentCategory && !searchQuery && subCategories.length > 0" class="flex overflow-x-auto whitespace-nowrap px-2 py-2 bg-gray-50/90 backdrop-blur border-b border-gray-200 no-scrollbar">
                     <button v-for="sub in subCategories" :key="sub" @click="scrollToSubCategory(sub)" class="px-4 py-1.5 mx-1 rounded-full text-sm font-medium transition-all duration-200" :class="activeSubCategory === sub ? 'bg-primary text-white shadow-md transform scale-105' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'">{{ sub }}</button>
                 </div>
             </header>
 
+            <!-- 
+                =============================================
+                主內容顯示區
+                =============================================
+            -->
             <main class="pt-16 px-4 max-w-2xl mx-auto min-h-[calc(100vh-80px)]">
                 
-                <!-- 頁面 1: 首頁 (無分類且無搜尋時顯示) -->
+                <!-- 情況一：首頁 (沒有選分類，也沒有搜尋) -->
                 <div v-if="!currentCategory && !searchQuery" class="animate-fade-in pb-4">
                     
-                    <!-- Logo -->
+                    <!-- 品牌 Logo -->
                     <div class="flex flex-col items-center justify-center pt-6 pb-4">
                         <div class="w-48 h-48 bg-white rounded-3xl shadow-md p-1.5 border border-orange-100 flex items-center justify-center overflow-hidden mb-4 relative group">
                             <img 
@@ -150,12 +178,13 @@
                         </div>
                     </div>
 
+                    <!-- 歡迎標題 -->
                     <div class="mb-6 text-center">
                         <h2 class="text-2xl font-bold text-gray-800 mb-1">{{ siteSettings.welcome_title || '歡迎光臨 👋' }}</h2>
                         <p class="text-gray-500 text-sm">{{ siteSettings.welcome_desc || '挑選您喜愛的美味食材' }}</p>
                     </div>
 
-                    <!-- Bulletin (搜尋框移到 Header 後，這裡只剩公告) -->
+                    <!-- 公告欄 (有內容才顯示) -->
                     <div v-if="siteSettings.bulletin_text" class="mb-8 mx-1 bg-bulletin border border-bulletin-border rounded-xl p-4 shadow-sm flex items-start animate-fade-in">
                         <div class="text-orange-500 mr-3 mt-0.5 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -166,7 +195,7 @@
                         <div class="text-bulletin-text text-sm font-medium leading-relaxed tracking-wide" v-html="siteSettings.bulletin_text"></div>
                     </div>
 
-                    <!-- Categories -->
+                    <!-- 大類別卡片列表 -->
                     <div class="grid grid-cols-2 gap-4">
                         <div 
                             v-for="cat in allCategories" 
@@ -175,6 +204,7 @@
                             class="rounded-2xl shadow-sm border border-gray-100 cursor-pointer active:scale-95 transition-all hover:shadow-md group relative overflow-hidden aspect-[4/3]"
                             :class="categoryImages[cat] ? 'bg-gray-800 border-none' : 'bg-white flex flex-col items-center justify-center'"
                         >
+                            <!-- 樣式A: 全版圖片 + 黑遮罩 (有設定圖片時) -->
                             <template v-if="categoryImages[cat]">
                                 <img :src="categoryImages[cat]" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
@@ -183,10 +213,11 @@
                                     <span class="inline-block text-[10px] font-medium bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-white/90 border border-white/10">{{ getCategoryCount(cat) }} 項商品</span>
                                 </div>
                             </template>
+                            <!-- 樣式B: 白色卡片 + Icon (沒設定圖片時) -->
                             <template v-else>
                                 <div class="w-16 h-16 rounded-full bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center mb-3 text-primary transition-colors">
                                     <svg v-if="cat==='湯品'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" /></svg>
-                                    <svg v-else-if="cat==='點心'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265zm-3 0a.375.375 0 11-.53 0L9 2.845l.265.265zm6 0a.375.375 0 11-.53 0L15 2.845l.265.265z" /></svg>
+                                    <svg v-else-if="cat==='點心'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.87c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265zm-3 0a.375.375 0 11-.53 0L9 2.845l.265.265zm6 0a.375.375 0 11-.53 0L15 2.845l.265.265z" /></svg>
                                     <svg v-else-if="cat==='菜餚'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1.001A3.75 3.75 0 0012 18z" /></svg>
                                     <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg>
                                 </div>
@@ -197,7 +228,7 @@
                     </div>
                 </div>
 
-                <!-- ★★★ 搜尋結果頁面 ★★★ -->
+                <!-- 情況二：搜尋結果頁面 -->
                 <div v-else-if="searchQuery" class="animate-fade-in pt-4">
                     <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -210,10 +241,18 @@
                     </div>
 
                     <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- 商品卡片 (點擊開燈箱) -->
                         <div v-for="item in searchResults" :key="item.id" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-row sm:flex-col h-32 sm:h-auto group">
-                            <div class="relative w-32 sm:w-full sm:h-48 bg-gray-200 shrink-0">
-                                <img :src="item.image || getPlaceholderImage(item.name)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <div 
+                                class="relative w-32 sm:w-full sm:h-48 bg-gray-200 shrink-0 cursor-pointer"
+                                @click="item.image ? openLightbox(item) : null"
+                            >
+                                <img :src="getProductImage(item)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
                                 <div v-if="item.brand" class="absolute top-1 left-1 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded shadow-sm">{{ item.brand }}</div>
+                                <!-- 多圖提示 -->
+                                <div v-if="item.images_more1" class="absolute bottom-1 right-1 bg-black/50 text-white p-1 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.69l-2.22-2.219a.75.75 0 00-1.06 0l-1.91 1.909-4.72-4.719a.75.75 0 00-1.06 0L1.5 11.06zm9.75-3.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+                                </div>
                             </div>
                             <div class="p-3 flex-1 flex flex-col justify-between">
                                 <div>
@@ -243,7 +282,7 @@
                     <div class="h-16"></div>
                 </div>
 
-                <!-- 頁面 2: 商品列表 -->
+                <!-- 情況三：分類頁面 (有選分類 且 沒有搜尋) -->
                 <div v-else class="animate-fade-in pt-12"> 
                     <div v-for="subName in subCategories" :key="subName" :id="'sub-' + subName" class="mb-8 scroll-mt-36">
                         <h3 class="text-lg font-bold text-gray-700 mb-3 flex items-center bg-gray-50/95 backdrop-blur sticky top-[6.5rem] z-10 py-2">
@@ -251,10 +290,17 @@
                             {{ subName }}
                         </h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- 商品卡片 (與上面相同) -->
                             <div v-for="item in currentCategoryItems[subName]" :key="item.id" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-row sm:flex-col h-32 sm:h-auto group">
-                                <div class="relative w-32 sm:w-full sm:h-48 bg-gray-200 shrink-0">
-                                    <img :src="item.image || getPlaceholderImage(item.name)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                                <div 
+                                    class="relative w-32 sm:w-full sm:h-48 bg-gray-200 shrink-0 cursor-pointer"
+                                    @click="item.image ? openLightbox(item) : null"
+                                >
+                                    <img :src="getProductImage(item)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
                                     <div v-if="item.brand" class="absolute top-1 left-1 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded shadow-sm">{{ item.brand }}</div>
+                                    <div v-if="item.images_more1" class="absolute bottom-1 right-1 bg-black/50 text-white p-1 rounded-full">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.69l-2.22-2.219a.75.75 0 00-1.06 0l-1.91 1.909-4.72-4.719a.75.75 0 00-1.06 0L1.5 11.06zm9.75-3.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+                                    </div>
                                 </div>
                                 <div class="p-3 flex-1 flex flex-col justify-between">
                                     <div>
@@ -286,7 +332,7 @@
                 </div>
             </main>
 
-            <!-- Float Cart -->
+            <!-- 浮動結帳列 -->
             <transition name="slide-up">
                 <div v-if="cartTotalCount > 0" class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white/95 backdrop-blur border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] safe-area-bottom">
                     <div class="max-w-2xl mx-auto flex items-center justify-between">
@@ -302,7 +348,7 @@
                 </div>
             </transition>
 
-            <!-- Checkout Modal -->
+            <!-- 結帳彈窗 (Modal) -->
             <div v-if="isCheckoutModalOpen" class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-300" @click="isCheckoutModalOpen = false"></div>
                 <div class="bg-white w-full max-w-md h-[90vh] sm:h-auto sm:max-h-[85vh] sm:rounded-2xl rounded-t-2xl shadow-2xl pointer-events-auto flex flex-col animate-slide-up sm:animate-fade-in relative">
@@ -350,6 +396,50 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ★★★ 新增：全螢幕燈箱 (Lightbox) ★★★ -->
+            <div v-if="lightbox.isOpen" class="fixed inset-0 z-[70] lightbox-backdrop flex flex-col animate-fade-in" @click="closeLightbox">
+                <!-- 關閉按鈕 -->
+                <button class="absolute top-4 right-4 text-white p-2 z-20 hover:bg-white/20 rounded-full" @click.stop="closeLightbox">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+
+                <!-- 圖片區域 (支援滑動) -->
+                <div 
+                    class="flex-1 flex items-center justify-center relative w-full h-full"
+                    @click.stop
+                    @touchstart="touchStart"
+                    @touchend="touchEnd"
+                >
+                    <!-- 上一張箭頭 (多圖才顯示) -->
+                    <button v-if="lightbox.images.length > 1" @click.stop="prevImage" class="absolute left-2 text-white/80 p-3 hover:bg-white/10 rounded-full z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                    </button>
+
+                    <!-- 圖片本體 -->
+                    <img 
+                        :src="lightbox.images[lightbox.imgIndex]" 
+                        class="max-h-[85vh] max-w-[95vw] object-contain transition-all duration-300"
+                        :key="lightbox.imgIndex"
+                    >
+
+                    <!-- 下一張箭頭 (多圖才顯示) -->
+                    <button v-if="lightbox.images.length > 1" @click.stop="nextImage" class="absolute right-2 text-white/80 p-3 hover:bg-white/10 rounded-full z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                    </button>
+                </div>
+
+                <!-- 底部指示點 (多圖才顯示) -->
+                <div v-if="lightbox.images.length > 1" class="absolute bottom-8 left-0 right-0 flex justify-center space-x-2 z-10">
+                    <span 
+                        v-for="(img, idx) in lightbox.images" 
+                        :key="idx"
+                        class="w-2 h-2 rounded-full transition-colors"
+                        :class="idx === lightbox.imgIndex ? 'bg-white' : 'bg-white/40'"
+                    ></span>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -357,11 +447,44 @@
     <script>
         const { createApp, ref, computed, reactive, onMounted } = Vue;
 
-        // ============================================
-        // ★★★ 設定區 ★★★
-        // ============================================
-        // 1. Google Apps Script 部署網址 (請填入)
+        // =======================================================================
+        // ★ 設定區 2：資料庫連線 (Google Apps Script)
+        // =======================================================================
+        
+        // ★★★ 請修改：填入您的 Google Apps Script 部署網址 ★★★
+        // 範例："https://script.google.com/macros/s/xxxxxxxxx/exec"
         const API_URL = "https://script.google.com/macros/s/AKfycbyUZeFd6JU2iHnHbhQavmOOCIH2zXQbltnDBlHqeSFhuN9XClaPNI6xoUhXAZ_GfLU6/exec"; 
+
+        // =======================================================================
+        // ★ Google Sheet 欄位說明 (給新手老闆參考)
+        // 請確保您的 Google Sheet 有以下欄位標題 (在第一列 Row 1)
+        // -----------------------------------------------------------------------
+        // [Menu 工作表]
+        // A: id (數字)
+        // B: cat (大分類: 湯品/點心/菜餚/主食)
+        // C: sub (子分類)
+        // D: name (商品名稱)
+        // E: spec (規格)
+        // F: brand (品牌)
+        // G: price (價格)
+        // H: tag1 (標籤1)
+        // I: tag2 (標籤2)
+        // J: tag3 (標籤3)
+        // K: image (主圖)
+        // L: images_more1 (燈箱圖2)
+        // M: images_more2 (燈箱圖3)
+        //
+        // [Settings 工作表]
+        // A欄 (Key)       | B欄 (Value)
+        // ----------------|------------------------
+        // brand_logo      | Logo 圖片網址
+        // welcome_title   | 首頁大標題
+        // welcome_desc    | 首頁小標題
+        // bulletin_text   | 公告內容
+        // default_prod_img| 品牌統一預設圖網址
+        // cat_img_湯品    | 湯品分類圖網址
+        // cat_img_點心    | ...依此類推
+        // =======================================================================
 
         createApp({
             setup() {
@@ -375,6 +498,14 @@
                 const currentCategory = ref(null);
                 const activeSubCategory = ref("");
                 const searchQuery = ref(""); 
+                
+                // 燈箱狀態
+                const lightbox = reactive({
+                    isOpen: false,
+                    imgIndex: 0,
+                    images: []
+                });
+                const touchX = ref(0);
 
                 // 抓取 Google Sheet 資料
                 const fetchMenuData = async () => {
@@ -442,21 +573,15 @@
 
                 const subCategories = computed(() => Object.keys(currentCategoryItems.value));
 
-                // ★★★ 關鍵更新：搜尋邏輯 (同時搜 Name, Tag1, Tag2, Tag3) ★★★
                 const searchResults = computed(() => {
                     if (!searchQuery.value) return [];
                     const q = searchQuery.value.toLowerCase().trim();
                     
                     return rawMenuData.value.filter(item => {
-                        // 1. 比對商品名稱
                         if (item.name && item.name.toLowerCase().includes(q)) return true;
-                        
-                        // 2. 比對三個標籤 (tag1, tag2, tag3)
-                        // 只要其中任何一個標籤包含搜尋字，就回傳 true
                         if (item.tag1 && item.tag1.toString().toLowerCase().includes(q)) return true;
                         if (item.tag2 && item.tag2.toString().toLowerCase().includes(q)) return true;
                         if (item.tag3 && item.tag3.toString().toLowerCase().includes(q)) return true;
-                        
                         return false;
                     });
                 });
@@ -468,6 +593,61 @@
                 const isFormValid = computed(() => customer.name.trim() !== "" && customer.phone.trim() !== "");
 
                 // Methods
+                const getProductImage = (item) => {
+                    if (item.image && item.image.trim() !== '') return item.image;
+                    if (siteSettings.value.default_prod_img && siteSettings.value.default_prod_img.trim() !== '') return siteSettings.value.default_prod_img;
+                    return getPlaceholderImage(item.name);
+                };
+
+                const getPlaceholderImage = (text) => `https://placehold.co/400x300/fed7aa/c2410c?text=${encodeURIComponent(text)}&font=roboto`;
+
+                const openLightbox = (item) => {
+                    if (!item.image || item.image.trim() === '') return;
+
+                    const imgs = [item.image];
+                    if (item.images_more1 && item.images_more1.trim()) imgs.push(item.images_more1);
+                    if (item.images_more2 && item.images_more2.trim()) imgs.push(item.images_more2);
+
+                    lightbox.images = imgs;
+                    lightbox.imgIndex = 0;
+                    lightbox.isOpen = true;
+                    document.body.style.overflow = 'hidden';
+                };
+
+                const closeLightbox = () => {
+                    lightbox.isOpen = false;
+                    document.body.style.overflow = '';
+                };
+
+                const nextImage = () => {
+                    if (lightbox.imgIndex < lightbox.images.length - 1) {
+                        lightbox.imgIndex++;
+                    } else {
+                        lightbox.imgIndex = 0; 
+                    }
+                };
+
+                const prevImage = () => {
+                    if (lightbox.imgIndex > 0) {
+                        lightbox.imgIndex--;
+                    } else {
+                        lightbox.imgIndex = lightbox.images.length - 1; 
+                    }
+                };
+
+                const touchStart = (e) => {
+                    touchX.value = e.changedTouches[0].screenX;
+                };
+
+                const touchEnd = (e) => {
+                    const endX = e.changedTouches[0].screenX;
+                    const diff = endX - touchX.value;
+                    if (Math.abs(diff) > 50) { 
+                        if (diff > 0) prevImage(); 
+                        else nextImage(); 
+                    }
+                };
+
                 const selectCategory = (cat) => {
                     currentCategory.value = cat;
                     searchQuery.value = ""; 
@@ -483,8 +663,6 @@
                 };
 
                 const getCategoryCount = (cat) => rawMenuData.value.filter(item => item.cat === cat).length;
-
-                const getPlaceholderImage = (text) => `https://placehold.co/400x300/fed7aa/c2410c?text=${encodeURIComponent(text)}&font=roboto`;
 
                 const scrollToSubCategory = (subName) => {
                     activeSubCategory.value = subName;
@@ -527,7 +705,7 @@
                     API_URL,
                     categoryImages,
                     rawMenuData,
-                    siteSettings, // 匯出設定
+                    siteSettings, 
                     isLoading,
                     cart,
                     cartTotalCount,
@@ -553,8 +731,17 @@
                     scrollToCartOrOpenModal,
                     submitOrder,
                     displayLogo,
-                    searchQuery, // 匯出搜尋相關
-                    searchResults
+                    searchQuery, 
+                    searchResults,
+                    lightbox, 
+                    openLightbox,
+                    closeLightbox,
+                    nextImage,
+                    prevImage,
+                    touchStart,
+                    touchEnd,
+                    getProductImage, 
+                    categoryImages 
                 };
             }
         }).mount('#app');
